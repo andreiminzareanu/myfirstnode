@@ -1,0 +1,42 @@
+name: Deploy Node.js App to Azure
+
+on:
+  push:
+    branches:
+      - main   # Rulează workflow-ul când faci push pe main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout codul
+      - uses: actions/checkout@v3
+
+      # 2️⃣ Setează Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'   # sau versiunea Node.js a aplicației tale
+
+      # 3️⃣ Instalare dependențe
+      - name: Install dependencies
+        run: npm install
+
+      # 4️⃣ Build aplicație (dacă ai script build)
+      - name: Build
+        run: npm run build --if-present
+
+      # 5️⃣ Login Azure
+      - name: 'Login via Azure CLI'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 6️⃣ Deploy App Service
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          slot-name: 'production'
+          package: .
